@@ -23,9 +23,10 @@
   *{margin:0;padding:0;box-sizing:border-box;}
 
   html,body{
-    background:#0e0e0e;
+    background:var(--dark);
     font-family:'Inter',sans-serif;
     color:var(--white);
+    height:100%;
   }
 
   /* ---- Racama display font, falls back gracefully if not installed locally ---- */
@@ -40,17 +41,19 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    min-height:100vh;
-    padding:24px 0;
+    height:100vh;
+    width:100vw;
+    overflow:hidden;
   }
 
   .frame{
     position:relative;
     width:1440px;
     height:778px;
+    flex:0 0 auto;
     background:var(--dark);
     overflow:hidden;
-    box-shadow:0 40px 90px rgba(0,0,0,.55);
+    transform-origin:center center;
   }
 
   .page{
@@ -706,6 +709,15 @@
 
   applyLang('ru');
   show(0);
+
+  // ---- Scale the 1440x778 canvas to fill the viewport, no side gaps ----
+  const frameEl = document.querySelector('.frame');
+  function fitFrame(){
+    const scale = Math.min(window.innerWidth / 1440, window.innerHeight / 778);
+    frameEl.style.transform = `scale(${scale})`;
+  }
+  fitFrame();
+  window.addEventListener('resize', fitFrame);
 })();
 </script>
 
