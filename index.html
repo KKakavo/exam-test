@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Биометрия — квиз</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --dark:#1c1c1c;
+    --orange:#fe4d01;
+    --white:#ffffff;
+    --gray:#b8b8b8;
+    --gray-light:#e2e2e2;
+    --amber:#ffb347;
+
+    --margin:60px;
+    --gutter:20px;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+
+  html,body{
+    background:#0e0e0e;
+    font-family:'Inter',sans-serif;
+    color:var(--white);
+  }
+
+  /* ---- Racama display font, falls back gracefully if not installed locally ---- */
+  @font-face{
+    font-family:'Racama';
+    src:local('Racama'), local('Racama-Bold');
+    font-weight:700;
+    font-display:swap;
+  }
+
+  body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    padding:24px 0;
+  }
+
+  .frame{
+    position:relative;
+    width:1440px;
+    height:778px;
+    background:var(--dark);
+    overflow:hidden;
+    box-shadow:0 40px 90px rgba(0,0,0,.55);
+  }
+
+  .page{
+    position:absolute;
+    inset:0;
+    display:none;
+    padding:var(--margin);
+  }
+  .page.active{display:block;}
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(12,1fr);
+    column-gap:var(--gutter);
+    height:100%;
+  }
+
+  /* ---------------- top bar shared across question pages ---------------- */
+  .topbar{
+    grid-column:1 / -1;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    height:32px;
+  }
+  .topbar .brand{
+    font-weight:700;
+    letter-spacing:.14em;
+    font-size:13px;
+    text-transform:uppercase;
+    color:var(--gray);
+  }
+  .topbar .progress{
+    font-size:13px;
+    color:var(--gray);
+    letter-spacing:.05em;
+  }
+  .progress b{color:var(--orange);font-weight:700;}
+
+  .progress-track{
+    grid-column:1/-1;
+    height:2px;
+    background:#3a3a3a;
+    margin-top:16px;
+    position:relative;
+  }
+  .progress-fill{
+    position:absolute;
+    left:0;top:0;bottom:0;
+    background:var(--orange);
+    width:0%;
+    transition:width .35s ease;
+  }
+
+  /* ---------------------------- WELCOME PAGE ---------------------------- */
+  #page-welcome .grid{align-content:center;}
+
+  .logo-slot{
+    grid-column:1 / span 3;
+    align-self:start;
+    height:96px;
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    text-align:center;
+    cursor:pointer;
+    padding:0;
+    opacity:1;
+    transition:opacity .2s ease;
+  }
+  .logo-slot:hover{opacity:.75;}
+  .logo-slot span{
+    font-size:11px;
+    color:var(--gray);
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    line-height:1.5;
+  }
+  .logo-slot img{
+    max-width:100%;
+    max-height:100%;
+    object-fit:contain;
+  }
+
+  /* ------------------------------ LANGUAGE SWITCH ------------------------------ */
+  .lang-switch{
+    position:absolute;
+    top:28px;
+    right:28px;
+    z-index:30;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .lang-switch button{
+    background:transparent;
+    border:none;
+    border-radius:0;
+    font-family:'Inter',sans-serif;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.08em;
+    color:var(--gray);
+    cursor:pointer;
+    padding:4px 2px;
+    transition:color .15s ease;
+  }
+  .lang-switch button:hover{color:var(--gray-light);}
+  .lang-switch button.active{color:var(--orange);}
+  .lang-switch .divider{
+    width:1px;
+    height:12px;
+    background:#3a3a3a;
+  }
+
+  .eyebrow{
+    grid-column:1 / span 8;
+    margin-top:56px;
+    font-size:13px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--orange);
+    font-weight:600;
+  }
+
+  .quiz-title{
+    grid-column:1 / span 10;
+    margin-top:18px;
+    font-family:'Racama','Inter',sans-serif;
+    font-weight:800;
+    font-size:64px;
+    line-height:1.04;
+    letter-spacing:-.01em;
+    text-transform:uppercase;
+  }
+  .quiz-title .accent{color:var(--orange);}
+
+  .quiz-desc{
+    grid-column:1 / span 6;
+    margin-top:28px;
+    font-size:16px;
+    line-height:1.6;
+    color:var(--gray-light);
+    outline:none;
+    border-left:2px solid #3a3a3a;
+    padding-left:16px;
+    min-height:70px;
+  }
+  .quiz-desc:focus{border-left-color:var(--orange);}
+  .quiz-desc:empty:before{
+    content:attr(data-placeholder);
+    color:var(--gray);
+  }
+
+  .start-row{
+    grid-column:1 / span 6;
+    margin-top:40px;
+    display:flex;
+    align-items:center;
+    gap:24px;
+  }
+
+  .btn{
+    border:none;
+    font-family:'Inter',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    cursor:pointer;
+    border-radius:0;
+    padding:16px 34px;
+    transition:background .2s ease, color .2s ease, opacity .2s ease, border-color .2s ease;
+  }
+  .btn-primary{
+    background:var(--orange);
+    color:var(--white);
+  }
+  .btn-primary:hover{background:#e64500;}
+  .btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+
+  .btn-ghost{
+    background:transparent;
+    color:var(--gray-light);
+    border:1px solid #3a3a3a;
+  }
+  .btn-ghost:hover{border-color:var(--gray-light);}
+  .btn-ghost:disabled{opacity:.3;cursor:not-allowed;}
+
+  .hint{
+    font-size:12px;
+    color:var(--gray);
+  }
+
+  /* --------------------------- QUESTION PAGES ---------------------------- */
+  .q-page .grid{align-content:start;}
+
+  .q-text{
+    grid-column:1 / span 9;
+    margin-top:56px;
+    font-size:32px;
+    font-weight:700;
+    line-height:1.3;
+  }
+
+  .options{
+    grid-column:1 / -1;
+    margin-top:44px;
+    display:grid;
+    grid-template-columns:repeat(12,1fr);
+    column-gap:var(--gutter);
+    row-gap:16px;
+  }
+
+  .option{
+    grid-column:span 6;
+    display:flex;
+    align-items:center;
+    gap:16px;
+    text-align:left;
+    background:#242424;
+    border:none;
+    color:var(--white);
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+    font-weight:500;
+    padding:18px 20px;
+    cursor:pointer;
+    border-radius:0;
+    transition:background .15s ease, color .15s ease;
+  }
+  .option:hover{background:#2c2c2c;}
+  .option .letter{
+    flex:0 0 auto;
+    width:28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    background:#333333;
+    font-size:12px;
+    font-weight:700;
+    color:var(--gray-light);
+  }
+  .option.selected{
+    background:var(--orange);
+    color:var(--white);
+  }
+  .option.selected .letter{
+    background:var(--white);
+    color:var(--orange);
+  }
+
+  .nav-row{
+    position:absolute;
+    left:60px;right:60px;bottom:60px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+
+  /* ---------------------------- RESULT PAGE ------------------------------ */
+  #page-result .grid{align-content:center;}
+
+  .res-eyebrow{
+    grid-column:1 / span 8;
+    font-size:13px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--orange);
+    font-weight:600;
+  }
+
+  .res-score{
+    grid-column:1 / span 12;
+    display:flex;
+    align-items:baseline;
+    gap:18px;
+    margin-top:14px;
+  }
+  .res-score .num{
+    font-family:'Racama','Inter',sans-serif;
+    font-weight:800;
+    font-size:140px;
+    line-height:1;
+    color:var(--orange);
+  }
+  .res-score .of{
+    font-size:28px;
+    color:var(--gray);
+    font-weight:600;
+  }
+
+  .res-summary{
+    grid-column:1 / span 6;
+    margin-top:22px;
+    font-size:17px;
+    line-height:1.6;
+    color:var(--gray-light);
+  }
+
+  .res-breakdown{
+    grid-column:7 / span 6;
+    margin-top:22px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .res-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-size:13px;
+    padding:10px 14px;
+    border:1px solid #333333;
+  }
+  .res-row .tag{
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--gray);
+  }
+  .res-row.correct .tag{color:var(--amber);}
+  .res-row .mark{font-weight:700;}
+  .res-row.correct .mark{color:var(--amber);}
+  .res-row.wrong .mark{color:var(--gray);}
+
+  .res-actions{
+    grid-column:1 / span 12;
+    margin-top:36px;
+    display:flex;
+    gap:24px;
+    align-items:center;
+  }
+</style>
+</head>
+<body>
+
+<div class="frame">
+
+  <div class="lang-switch">
+    <button type="button" id="langRu" class="active">RU</button>
+    <span class="divider"></span>
+    <button type="button" id="langEn">EN</button>
+  </div>
+
+  <!-- ============================= PAGE 1 — WELCOME ============================= -->
+  <section class="page active" id="page-welcome">
+    <div class="grid">
+
+      <div class="logo-slot" id="logoSlot">
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPAAAADwCAYAAAA+VemSAAABJGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGAycHRxcmUSYGDIzSspCnJ3UoiIjFJgP8/AxsDMAAaJycUFjgEBPiB2Xn5eKgMG+HaNgRFEX9YFmYUpjxdwJRcUlQDpP0BslJJanMzAwGgAZGeXlxQAxRnnANkiSdlg9gYQuygkyBnIPgJk86VD2FdA7CQI+wmIXQT0BJD9BaQ+Hcxm4gCbA2HLgNglqRUgexmc8wsqizLTM0oUDC0tLRUcU/KTUhWCK4tLUnOLFTzzkvOLCvKLEktSU4BqIe4DA0GIQlCIaQA1WmiS6G+CABQPENbnQHD4MoqdQYghQHJpURmUychkTJiPMGOOBAOD/1IGBpY/CDGTXgaGBToMDPxTEWJqhgwMAvoMDPvmAADAxk/9GlU2EAAAGDhJREFUeJztnXmYVOWVh99egJatgQYUNxBQXHGLJmqMxsSJRjPiGidqNJrEaDLGJXHUzMSEaBKjqDNuGAxu6LjHLaMTdVSMGvcFXBAVREBoAoJgA71V/vhVDx1k6aq693733Hve57kPoF11T1fVr77zne8sVYVCAcdxbFId2gDHccrHBew4hnEBO45hXMCOYxgXsOMYxgXsOIZxATuOYVzAjmMYF7DjGMYF7DiGcQE7jmFcwI5jGBew4xjGBew4hnEBO45hXMCOYxgXsOMYxgXsOIZxATuOYVzAjmMYF7DjGMYF7DiGcQE7jmFcwI5jGBew4xjGBew4hnEBO45hXMCOYxgXsOMYxgXsOIZxATuOYWpDG5Bz+gEDgcFAAzAAqAf6Ar2AOqA7UFO82oDW4rUCaAKWAZ8AHwMLgb8V/1wINCf2mzhBcAEnQz9gZPEaigQ7CNgQ6A/0QELtht6TWiTY6uJVVbwKna42oJ1Vgm4pXs1I3POQmBcV/5wDzAI+KP7dyQAu4OipArYGti9eWwEbIRH3Q6trT7S6xk0bEvNytFIvRav1EmAuMAN4t3jNRGJ3DFFVKBRC25AFNgR2BEYDOwGbAZsCm6DVNa18CswHGtEqPRd4A3gfCfod3A1PNS7g8ukG7AXsDOwBbAOMKv53yzQBHwKz0Qo9lVVinobcdicluIBLpwEJdh9gf7TyZp1ZSMivF/+cDryHAmVOQFzAXacB2B34GvAtFITKKy8AzwKvIEHPAT4KalFOcQGvnz7IPT4SOBUFoJxVvAlMBh5D++c5KFDmJIALeO3UAhsDRwPnofNZZ928DtwBPICE7C52zLiA10wfYG9gLLBrYFssshi4BZiAItrL0Nm1EzEu4H+kGon3N8D3UTKFUz7LgUnAZSjw1YYLOVJcwKuoBr4MXAWMwJNcoqINWABcD/wXyhBzIsIFLHoAZwE/QdlSVUGtySZN6OjpEuCmwLZkBhewCgguBg5D4nXiZQHwFHA+OoJyKiDvAh6J3Lp9gQ3CmpIr2oEpwB+AKwLbYpo8C/hzwDjgS6ENyTHzgYeAX6AqKadE8irgvYDfAXuGNsQB4FHgUiRmpwTyGGndEwVSvhDaEOf/+Sqq6NoYuBHVNztdIG8r8K7Af6IV2EkfjejL9Vo8HbNL5EnAI4HxwFdCG+Ksk3aUSHMVXiCxXvIi4Ab0gTgKP+O1wnjgArz9zzrJQ1fKbsCZwBhcvJb4ATqfHxLakDST9RW4GjgAuId0t7Zx1s79wPGoQMJZjawLuD+qhukX2A6nMh5EmXItoQ1JG1l2ofuifVTf0IY4FXMgqmpyViOrAq5F571jyO7vmCdqgIOA60Ibkjay+uFuQKtv99CGOJHRCzgC+G1oQ9JEFgXcBzgOTUBwskU9cDLqTeaQzSDWdsD/oqbqTjb5CPge8KfQhoQmaytwX+AQXLxZZwjK1hod2pDQZG0F3g24DRge2pAEaS5erSgNsRolr3QMS8syDwMnoLLEXJKlaqQeKPKcNfGuQF0sGtHwsU/QkLJFKLmhCViJzkg7BNwdvR4boH1jfxQb6IXOxBvQWNOGxH6LeDgAZdn9Gg1syx1ZEvAolOtsnZVoj/cRmlH0Fuol9T4acbIAibpUalH7oI2BzYFhKNA3rPjfBhUva+fmZ6G5TZPQa5crsiTg3bFboN+MujXOBl4EngH+SrRdKlrRKt4IvLra/xuBZjztgPaVW7Jq+HjaWw3VAD9GX3JPhDUlebIi4F7ALqGNKINlaEV9ErgPRVVDpAu+V7zuKf57KPpC3BfVTg9Cgk7rWJkd0PHSVDQmNTdkJYj1FVSov11oQ7rISrR/vRklnLwX1Jp10w0J+VD0Om+IhJzGANlYtB/OjSudlRV4W2yIt4BW3XvRh+3doNZ0jRbgkeJVj1Iaj0XNAOtQ0CwtZZrHoflMd4c2JCmycA5cjQRsgfloZMtJpHvVXRtLgNtRjvkeqCVvmo5whqHRr30C25EYWRDw1igIk3ZeA76O9pkt2J0R1IaCbm8AP0fNAc8E3g5pVJEq5CGcF9qQpMiCgLcCtghtxHp4AjgcDcRuDmtKZLSj7cAHaArhQSiQ9GJIo9D59zeAfQLbkQhZEPAo0l248CjwXWy6zF1lGTqnvgntj38AvBzQnq2A0wLePzGyIOARpDMiCppcfzbZFm9nVgDTgInoS+scwkxc6IYi5icHuHeiWBdwb2BwaCPWwjTgIuQ2540W9HtfhoR8LfBpwjbUA6dgP110nVgX8FDS+QYVgKuR+5xnmtFrcA5KeXwy4fuPKt47s1gX8HCUJZQ2biteWQlYVcpitAqfDlxJcg3b61Dd8FYJ3S9xrAt4C5SvmybmI9e5MbQhKeRV4F+BX5FckKsncCH2P+trxPovtRHa66SJq4GZoY1IOdegZJaHUAQ7TrqhXlq7YP/z/hks/0I1aPVNUzroEuAGclqbWiKvosSW3xO/S90xb6lfzPdJHMsCHkT6xm5kaapeLdpD9kY1wv2KV33x371Q0kSln6GzgH8HZiChxUE1GmG6PbY/858hTatXqWxOuorP29D55+LAdpRLFfpw1yKRbodyzIejCqRexf/XjL6k5qJC+qnoyGwlEmBbGfeeiBJBxqOAU1zFEeejMS2zY3r+xLEs4CGkp9i8DdXzpimxv1Q2RemeBwI7IxFXrXbBqhzuQvFqQxMEn0H1zA9S3pnvZLRXvRnYqZxfoAvsi8bMZkbAluuBTwF+SHrKCLcH3sRekcIuqKPFAShiW0fpX+wFtDKvQNH3u4DLKT0SX40qiiYA+5X42K7yAPrcfBjT8yeK5f3AYNKxAreiD+s72BLvZkgof0S9xAaj/W45XlkV2g/Xo3Y8PwL+AvyM0rp4tCNX+jtFu+Jgf2xUr3UJywLuTzpGp0xDXSAsTc47HrgTFR5sjlbdKOmDhHxW8T57lPj4WSjp47+jNQvQ73osauRnHssC7k34IoYl6DxzQWA7ukod8DuUSPF5ohfu6vRHR0XjgRNLfOws4FziEfHhqI7cPJYFvAE6Cw5FE9o7PhfQhlIYjFz905H7nCSj0ZfGT0t83AfoiOme9f1gifQD/gl9wZjGsoDrCCfgBcC/ATcGun+pNKCpficTzmvZGHXwKFXE76OChIcjtudo4ot2J4ZlAdcQppnaFOTaXRng3uVQh3KBvxPaELTtGYv6gpXCdLSffjpCW4YCe6Pgm1ksC7g7ya7AC4H7gTOAPyR430r5IekqbK8DxgFfLPFxb6IuG1MjtOVgjA9IsyzgDYj/27MJnRc+g4I/xwCPxXzPqKhFkyouCW3IGuiNsq82LPFxL6MvpJkR2bEb8Z03J4LlTKyXkQvdn+iPcFqBj9HZ7mSUZdUa8T3iZjPUESOtbIH2xGdQWt30ZLQnHkc0Y2R3RMdeSyN4rsSxnInVObUv6r2w2RelSHfg2yhRI+2MRm5xqa/5T4tXpQ0dXkf7a5PdUyy70B25uJ3/HtVlnW2A/whtRBdoA35BeTXdF6MJDOVMauzMMAx37LAsYGft7EjyZ73lUAMcQul74Q5OQyNfKqEvykYziQs4e4wEjiQ984rWRw3wL5S3CrcAJ6BRrJVQ7hdIcFzA2WM46olsiW9TfmukRaiRfCXte9OQU18WLuBsUYPKK9NQpVUKw1A9crm8hgJa5Z4Rm+2i4gLOFkNQMb41qtCQtF4VPMfj6FjqnRIf14SNMa9rxPI58HCU49uN+HopdaYNWI7yoNPaeWNT0tPgoFQ+h0aXljvBoR1lytWgdM1tuvi4F4m+WCIxLAt4HDoD7EZ5fZhKoap4jxVozzUDeBYlFSyK+d6lMBC5oxYZRmnF/2uiDXUDaUH56p9fz89/CFyF3k+TWBbwmMD3/xC1Z7kdCTkN9CR9fbK7yiCiS429D3lKZ6KChdXnZ60EXkA57XF1/kgEywL+kLBnnZsBp6JGaeci9y00IUssK6WeaD+Pz6B025NQS9kG5EktA15CX7xTIrxfECwL+G+oxjT0B3Zb1DbmCLQihyTuDhtx0oPo38sVyEW+Ck3xAJgX8T2CYjkK3YgiiGmgO9p77UrYL5QkgnlxEXca6zwyJl6wLeAm0lUh1B24HnU8DJUFtTLQfaNgOfEHIzOHZQEvI10CBtgBdTwMFUhaQfpek66yGLu2B8OygJeQzvm75xKuy8OnqI7ZIguw7UEEwbKAF5LON7wWpfWFaB6+EHVytMhM0hPTMINlAc8hvW/4/qhdS9LMBt4IcN8oeBG73kMwLAt4JvEPhy6XHmgV3inh+85Hc3ct8lcqL87PHZYFPJ10V5Hsgib9JRmRbgXepvx84lBMQ0O+s9ANJVEsC3gO8U92r5QTgX0SvufbwJ8TvmelTCRZ93kb4GuoreyOCd43cixnYrWgdMpm0luQPRL1ZO5YYZJgNnAHcGhC96uUlSh3OYnt0IEoPrE9Kr3shgaV/wWYROmliMGxLGDQPrgjpTKtHIgS5y9N6H6taD/5Ojaalt9E/JHzBpS3fhyamtiZUcCXUcHDOLQ1M4NlFxrgLdLvRtcjVzrJqPRcNEwszRTQl++vifc4sB4NSBvLZ8XbmaOx0cnzH7Au4CRd00rYDriIytrGlEIz8H+oS0VaaUdjR2cSX/CqB9rCnN6Fn61HY0dNYV3AC1EwywL7Ar8huZGWi9CHN42zi9tRqV+cK14tigNc1MWfbyOdr9U6sS5gUNQ1jRlZq1MFHIbGglTS+6kUZqDz6DSNDSmg9yzOaYm1aF87qYTHLAKeiMWaGMmCgF9He2EL9ETBlJ+QTACxFbgZuappSHopALPQfjSujLFq4EtIvKWUdn6MwSy2LAj4TWx1FeyNZvFckND92oHz0Ac6tKfSiLYRd8V4j73RTKhSZyY1ouMkU2RBwI1IxJbog8ZkXpfQ/VqBs9FRVqgKrrnInb+R+Op+90ev6RaUngE3C+VjmyILAm5HLnRjaENKpDfwLeB/SGY2z1I0EOxHqPY2SV5FI1DuIr5856OAa1DyTKniXYqawkc9pjZ2siBgUETzpdBGlMEGwAHAgyitL24+Rq70oSTThK8duBw1OXgMdd2IgzNQEka5JZzTSU9n0ZKwnonVwQy0fzkwtCFlUIU6eVyKzosvJ9696nIUbZ2NZuJ+l3gyth5GWVaPEt/xTB3wSxTRrmRO8Ay0CJgjKwJuQfuXuaQ7rXJdbIn2qVsCVxJ/WeC7xfu8DOyFkvv3orLezPOAp9DIz6eJNzYxGiVoHItymstlBXqt4/IOYqWqUMhMBddA4Hy0x7POkygYcyfJRY53QuNNdkJfIpug/OAG1rzVWolSIeejbKo30ZHeC8V/x8nhaCLhVyN4rpdQQPG5CJ4rcbIkYJALfTuK8lpnMXAFqiwqd+peuWyNRp0MQSIegAZhd0Mr1hKUBTcfueLTkfcTN9sB30Ru/5CInvMKFB0PfcRWFlkT8MbAhSjimRX+jFzdZ9GKl0ca0Pnu94k2zrEYrb63RviciZI1AQPsgQIofUMbEiHtKMp6C3JPlwS1Jjl6o8kXRyKhRT33+E4Ud5gZ8fMmRlaOkTozHbghtBERU43cvIdQ4GZb5NZmlV7AVmjFvRulnkYt3mbk3cyM+HkTJYsrMCgxYgrZWoU7Mw+4DaUMzkXdOdPYI7sUqpFIB6Cij7OId3jdZOA04LUY7xE7WRVwHQp2TCSbXkYHTShB4mZU+7sEudvt2GgQV4XenxoU+f4mWnU3jPm+BVRqOSHm+8ROVgUMCnzcDuxHuFlFSdCOcovnI5fwT+gMdn5Io7rICFT2dyjwRVStVUP879cU1CXFXO7z6mRZwFXIBXub6PdPaWUlOuZZis5kn0Yu4hSUrB+aQcDuaIrj3ujMuQfymCpJxiiVk1CWmPlZTFkWcAdHoJU4y670mmhFNcDLi9cHKPtqBvBe8ZqBCtmjpgf68hyBXOMRKPA2HAWoeqIIc4hRrK8Ax2Cnhnyd5EHA3VDjtNPJTupouaxA++Ym1Py9Ca3WjajQYQk6G13S6eeai1cb8mpqURvfOiTCPihY2B/1lRqIAlE9kVg7X2mgYxC79aAfkA8Bg4Ii44Exge1IM+3IBe+4WlGOecceu51VQadqJORuSMwdgk7SDS6H+5H7nJmEmLwIGNTMewLwhdCGOEFoRcUaL5GhQeJ52hdORbN7M7H3cUrmYhR1zox4IV8rcAf/jGputwhsh5Mcr6BGd2lo7BcpeVqBO7gfNXlLw7GKEz8LUSvfzIkX8ilgUBriz1ApnJNdWlCWmrVpjV0mjy50Z45GrWyiqi110kMr6g6yX2hD4iSvK3AHt6HODknOpnXip4CatJ8Z2pC4ybuAQXviw1DjtVy7IxliPjoyfDWwHbHjAhaTUX8lU7NhnbVyF0rcyTwuYNGOzom/jtqgOna5D50yZOq8d224gFfRjhL8T0SNzhx7PIFa5KRpGmOs5D0KvTYGoX3xRShB30k/L6EuHk+GNiRJfAVeMwtQN4/DUMcLJ928h6YePhXakKTxFXj9jAaOI56uiE7lzEc57rditLdzJbiAu0YfNEnwGNRJwkkHy1BG3bXkULzgAi6VXVGQ6xA0esQJxwrUqOEiMlKcXw4u4PI4oXjtTHZb16aZlaii7FxynnzjAi6fAahNzxg0RygL85gs0IQGv/04tCFpwAVcOZsDp6KI9WD82ClOPkHBqlNCG5IWXMDRsSmrXOvBqImbH9NFh4t3DbiAo6cBlSmejMZ01uBCrpQm4HqyMfs5UlzA0dPRubEOTb0/FdiXMD2Qs0AzcA0a7tYS2JbU4QKOl+7IlR4FfA9Nlvc9ctdpAS5Bx0WZbIlTKS7gZKhCDc83AQ5GSSHbBLUo/TQDF6Dh5t5wYS24gJOnHkWu90BHUFFOnM8KnwK/RMdFLt514AIORw0wEuVaH4ym0HuutQpJfgXciCLPzjpwAaeDzYDd0Gp8FPnN7poFXIgmB64IbIsJXMDpYiBwAHAQ8A3SMxAsCd4CfgvcQk66aUSBCzidNADHo6j1noFtSYKX0cp7T2hDrOECTjc7onzrg1CXkCzyPGqDk6tOGlHhArbB2SghZGhoQyKkADyLyjOnBbbFLC5gO4wBriYbUyRWAI8Ax+KR5orI+8R6S9yLVq2bgd4oOcQin6K+zScEtiMTeJK9LR4AJmGzfUwBtXu9EhdvZLgLbY8+aM9ozZVehLKrrkaDx5wI8BXYHkuBZ7C1Cs9CXT0n4OKNFBewTV7DTqbSK6gS615geVhTsocL2CYzsNGJ8RF0/PUYdr5wTOFRaJvMI/3F7TcA49DQOCcmXMA2WUS695KXI/HODmxH5nEB26QJTVNMG4uQcC/D97uJ4AK2STPpE/A7wKVozImTEC5gm6TNfX4OjTj5Y2hD8oYL2CZpOT1oBx4HzgFeDGxLLnEB26SW8LnQTcCj6Iy3MbAtuSUt3+ROaXQnrICXoZ5VY3DxBsUFbJM6wrx3BVT+NxYlaHgifWDchbZJKAE3oqmAdwe4t7MGfAW2SR+Sf++mAsehSHPaouC5xQVsk94k+949iFrfPI6NHOzc4C60TfqT3Ht3CSoDfCeh+zkl4AK2SV/in3a4APg5cCewMOZ7OWXiArZJ3AJ+Cq2898d4DycCXMA2qSc+Ad8IXAW8ENPzOxHiArZJP6IPYs0BJqJSwEURP7cTEy5gm/Qj2vfueWA8cH2Ez+kkgAvYJgOJ5r1bhtrdjEXziRxjuIDtUYPmJFWaCz0fuBU4H3W6dAziArZFFZpcOKCC52hBTfF+hiYkOIZxAdujktW3FXgI5TPPjMogJxwuYFtUIQGXc4TUDpwHXAcsjtAmJyAuYFtUIfe51COk54EzUJN1bzaXIVzA9hhAaS70xWge0Qd4/W7mcAHbogodIXXFhX4NuABVEHkuc0ZxAduiCtiIdbvQBTTC8wb8bDfzuIBt0SHgta3ArwC/B+7Be1XlAhewPQbx2RW4CSVlTAKeTNwiJxguYFsUUCJHZwE/j2p2r8UzqnKHC9gWPYGhSMCzUR7z1UjETg5xAduhI41yKfAeEu7EoBY5wXEB26EKpUJOAO4Apoc1x0kDVYWCn+07jlW8razjGMYF7DiGcQE7jmFcwI5jGBew4xjGBew4hnEBO45hXMCOYxgXsOMYxgXsOIZxATuOYVzAjmMYF7DjGMYF7DiGcQE7jmFcwI5jGBew4xjGBew4hnEBO45hXMCOYxgXsOMYxgXsOIZxATuOYVzAjmMYF7DjGMYF7DiGcQE7jmFcwI5jGBew4xjm75SCJrWTyZrHAAAAAElFTkSuQmCC" alt="Company logo" id="logoImg">
+      </div>
+      <input type="file" id="logoInput" accept="image/*" hidden>
+
+      <div class="eyebrow" id="eyebrowWelcome">Онлайн&nbsp;·&nbsp;3 вопроса&nbsp;·&nbsp;2 минуты</div>
+
+      <h1 class="quiz-title" id="quizTitle">Проверь себя<br>в <span class="accent">биометрии</span></h1>
+
+      <div class="quiz-desc" id="quizDesc" contenteditable="true" data-placeholder="Добавьте описание квиза: расскажите, о чём он и для кого предназначен."></div>
+
+      <div class="start-row">
+        <button class="btn btn-primary" id="startBtn">Начать тест</button>
+        <span class="hint" id="startHint">3 вопроса · без ограничения по времени</span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================= PAGES 2–4 — QUESTIONS ============================= -->
+  <section class="page q-page" id="page-q1" data-index="0">
+    <div class="grid">
+      <div class="topbar">
+        <span class="brand">Биометрия · квиз</span>
+        <span class="progress" id="progress-1">Вопрос <b>1</b> из 3</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:33.33%"></div></div>
+
+      <h2 class="q-text" id="qText-0">Что такое биометрия?</h2>
+
+      <div class="options" data-question="0">
+        <button class="option" data-correct="true"><span class="letter">A</span><span class="opt-text" id="opt-0-0">Идентификация человека по уникальным физиологическим или поведенческим признакам</span></button>
+        <button class="option"><span class="letter">B</span><span class="opt-text" id="opt-0-1">Метод шифрования данных с помощью пароля</span></button>
+        <button class="option"><span class="letter">C</span><span class="opt-text" id="opt-0-2">Технология распознавания текста на изображениях</span></button>
+        <button class="option"><span class="letter">D</span><span class="opt-text" id="opt-0-3">Способ резервного хранения файлов в облаке</span></button>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn btn-ghost" id="backBtn-1">Назад</button>
+      <button class="btn btn-primary" id="nextBtn-1">Далее</button>
+    </div>
+  </section>
+
+  <section class="page q-page" id="page-q2" data-index="1">
+    <div class="grid">
+      <div class="topbar">
+        <span class="brand">Биометрия · квиз</span>
+        <span class="progress" id="progress-2">Вопрос <b>2</b> из 3</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:66.66%"></div></div>
+
+      <h2 class="q-text" id="qText-1">Какой из вариантов НЕ относится к биометрическим методам идентификации?</h2>
+
+      <div class="options" data-question="1">
+        <button class="option"><span class="letter">A</span><span class="opt-text" id="opt-1-0">Отпечаток пальца</span></button>
+        <button class="option"><span class="letter">B</span><span class="opt-text" id="opt-1-1">Радужная оболочка глаза</span></button>
+        <button class="option" data-correct="true"><span class="letter">C</span><span class="opt-text" id="opt-1-2">PIN-код</span></button>
+        <button class="option"><span class="letter">D</span><span class="opt-text" id="opt-1-3">Голос</span></button>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn btn-ghost" id="backBtn-2">Назад</button>
+      <button class="btn btn-primary" id="nextBtn-2">Далее</button>
+    </div>
+  </section>
+
+  <section class="page q-page" id="page-q3" data-index="2">
+    <div class="grid">
+      <div class="topbar">
+        <span class="brand">Биометрия · квиз</span>
+        <span class="progress" id="progress-3">Вопрос <b>3</b> из 3</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:100%"></div></div>
+
+      <h2 class="q-text" id="qText-2">В чём главное преимущество биометрической аутентификации перед паролем?</h2>
+
+      <div class="options" data-question="2">
+        <button class="option" data-correct="true"><span class="letter">A</span><span class="opt-text" id="opt-2-0">Её нельзя забыть, потерять или передать другому человеку</span></button>
+        <button class="option"><span class="letter">B</span><span class="opt-text" id="opt-2-1">Она работает быстрее, чем интернет-соединение</span></button>
+        <button class="option"><span class="letter">C</span><span class="opt-text" id="opt-2-2">Биометрические данные можно менять неограниченное число раз</span></button>
+        <button class="option"><span class="letter">D</span><span class="opt-text" id="opt-2-3">Для неё не требуется никакое специальное оборудование</span></button>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn btn-ghost" id="backBtn-3">Назад</button>
+      <button class="btn btn-primary" id="nextBtn-3">Завершить</button>
+    </div>
+  </section>
+
+  <!-- ============================= PAGE 5 — RESULT ============================= -->
+  <section class="page" id="page-result">
+    <div class="grid">
+      <div class="res-eyebrow" id="resEyebrow">Результат теста</div>
+
+      <div class="res-score">
+        <span class="num" id="scoreNum">0</span>
+        <span class="of" id="scoreOf">из 3 правильных ответов</span>
+      </div>
+
+      <p class="res-summary" id="scoreSummary">Загрузка результата…</p>
+
+      <div class="res-breakdown" id="scoreBreakdown"></div>
+
+      <div class="res-actions">
+        <button class="btn btn-primary" id="restartBtn">Начать тест сначала</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  const pages = ["page-welcome","page-q1","page-q2","page-q3","page-result"];
+  let current = 0;
+  let lang = 'ru';
+  const answers = [null, null, null]; // stores true/false correctness per question
+
+  const i18n = {
+    ru:{
+      brand:"Биометрия · квиз",
+      eyebrowWelcome:"Онлайн\u00A0·\u00A03 вопроса\u00A0·\u00A02 минуты",
+      titleHTML:"Проверь себя<br>в <span class=\"accent\">биометрии</span>",
+      descPlaceholder:"Добавьте описание квиза: расскажите, о чём он и для кого предназначен.",
+      startBtn:"Начать тест",
+      startHint:"3 вопроса · без ограничения по времени",
+      questionWord:"Вопрос",
+      ofWord:"из",
+      qText:[
+        "Что такое биометрия?",
+        "Какой из вариантов НЕ относится к биометрическим методам идентификации?",
+        "В чём главное преимущество биометрической аутентификации перед паролем?"
+      ],
+      options:[
+        ["Идентификация человека по уникальным физиологическим или поведенческим признакам","Метод шифрования данных с помощью пароля","Технология распознавания текста на изображениях","Способ резервного хранения файлов в облаке"],
+        ["Отпечаток пальца","Радужная оболочка глаза","PIN-код","Голос"],
+        ["Её нельзя забыть, потерять или передать другому человеку","Она работает быстрее, чем интернет-соединение","Биометрические данные можно менять неограниченное число раз","Для неё не требуется никакое специальное оборудование"]
+      ],
+      back:"Назад", next:"Далее", finish:"Завершить",
+      resEyebrow:"Результат теста",
+      scoreOf:"из 3 правильных ответов",
+      summary:[
+        "Пока результат низкий. Рекомендуем изучить основы биометрической идентификации.",
+        "Неплохое начало — стоит освежить базовые понятия биометрии.",
+        "Хороший результат. Вы понимаете основы биометрии, но есть куда расти.",
+        "Отлично! Вы уверенно разбираетесь в основах биометрической идентификации."
+      ],
+      questionShort:"Вопрос", correct:"Верно", incorrect:"Неверно",
+      restart:"Начать тест сначала",
+      logoAlt:"Логотип компании"
+    },
+    en:{
+      brand:"Biometrics · Quiz",
+      eyebrowWelcome:"Online\u00A0·\u00A03 questions\u00A0·\u00A02 minutes",
+      titleHTML:"Test yourself<br>in <span class=\"accent\">biometrics</span>",
+      descPlaceholder:"Add a quiz description: tell people what it's about and who it's for.",
+      startBtn:"Start quiz",
+      startHint:"3 questions · no time limit",
+      questionWord:"Question",
+      ofWord:"of",
+      qText:[
+        "What is biometrics?",
+        "Which of the following is NOT a biometric identification method?",
+        "What is the main advantage of biometric authentication over a password?"
+      ],
+      options:[
+        ["Identifying a person by unique physiological or behavioral traits","A method of encrypting data using a password","A technology for recognizing text in images","A way of backing up files in the cloud"],
+        ["Fingerprint","Iris pattern","PIN code","Voice"],
+        ["It can't be forgotten, lost, or handed to someone else","It works faster than an internet connection","Biometric data can be changed an unlimited number of times","It requires no special equipment at all"]
+      ],
+      back:"Back", next:"Next", finish:"Finish",
+      resEyebrow:"Quiz result",
+      scoreOf:"out of 3 correct answers",
+      summary:[
+        "The result is currently low. We recommend studying the basics of biometric identification.",
+        "Not a bad start — it's worth brushing up on basic biometrics concepts.",
+        "Good result. You understand the basics of biometrics, but there's room to grow.",
+        "Excellent! You have a solid grasp of the basics of biometric identification."
+      ],
+      questionShort:"Question", correct:"Correct", incorrect:"Incorrect",
+      restart:"Restart quiz",
+      logoAlt:"Company logo"
+    }
+  };
+
+  function show(idx){
+    current = idx;
+    pages.forEach((id,i)=>{
+      document.getElementById(id).classList.toggle('active', i===idx);
+    });
+  }
+
+  // ---- Welcome page: logo upload ----
+  const logoSlot = document.getElementById('logoSlot');
+  const logoInput = document.getElementById('logoInput');
+  logoSlot.addEventListener('click', ()=>logoInput.click());
+  logoInput.addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      logoSlot.innerHTML = `<img src="${reader.result}" alt="${i18n[lang].logoAlt}" id="logoImg">`;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('startBtn').addEventListener('click', ()=>show(1));
+
+  // ---- Question pages: option selection + nav ----
+  document.querySelectorAll('.options').forEach(group=>{
+    const qIndex = parseInt(group.dataset.question, 10);
+    group.querySelectorAll('.option').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        group.querySelectorAll('.option').forEach(o=>o.classList.remove('selected'));
+        btn.classList.add('selected');
+        answers[qIndex] = btn.dataset.correct === "true";
+      });
+    });
+  });
+
+  document.getElementById('backBtn-1').addEventListener('click', ()=>show(0));
+  document.getElementById('backBtn-2').addEventListener('click', ()=>show(1));
+  document.getElementById('backBtn-3').addEventListener('click', ()=>show(2));
+
+  document.getElementById('nextBtn-1').addEventListener('click', ()=>show(2));
+  document.getElementById('nextBtn-2').addEventListener('click', ()=>show(3));
+  document.getElementById('nextBtn-3').addEventListener('click', ()=>{
+    renderResult();
+    show(4);
+  });
+
+  // ---- Result page ----
+  function renderResult(){
+    const t = i18n[lang];
+    const score = answers.filter(a=>a===true).length;
+    document.getElementById('scoreNum').textContent = score;
+    document.getElementById('scoreSummary').textContent = t.summary[score];
+
+    const breakdown = document.getElementById('scoreBreakdown');
+    breakdown.innerHTML = "";
+    t.qText.forEach((label, i)=>{
+      const correct = answers[i] === true;
+      const row = document.createElement('div');
+      row.className = 'res-row ' + (correct ? 'correct' : 'wrong');
+      row.innerHTML = `<span class="tag">${t.questionShort} ${i+1}</span><span class="mark">${correct ? t.correct : t.incorrect}</span>`;
+      breakdown.appendChild(row);
+    });
+  }
+
+  document.getElementById('restartBtn').addEventListener('click', ()=>{
+    answers[0]=null; answers[1]=null; answers[2]=null;
+    document.querySelectorAll('.option.selected').forEach(o=>o.classList.remove('selected'));
+    show(1); // per spec: restart returns to the first question
+  });
+
+  // ---- Language switch ----
+  function applyLang(newLang){
+    lang = newLang;
+    const t = i18n[lang];
+    document.documentElement.lang = lang;
+
+    document.getElementById('langRu').classList.toggle('active', lang === 'ru');
+    document.getElementById('langEn').classList.toggle('active', lang === 'en');
+
+    document.querySelectorAll('.brand').forEach(el => el.textContent = t.brand);
+    document.getElementById('eyebrowWelcome').textContent = t.eyebrowWelcome;
+    document.getElementById('quizTitle').innerHTML = t.titleHTML;
+    document.getElementById('startBtn').textContent = t.startBtn;
+    document.getElementById('startHint').textContent = t.startHint;
+
+    const desc = document.getElementById('quizDesc');
+    desc.setAttribute('data-placeholder', t.descPlaceholder);
+
+    for(let q=0; q<3; q++){
+      document.getElementById('qText-'+q).textContent = t.qText[q];
+      for(let o=0; o<4; o++){
+        document.getElementById('opt-'+q+'-'+o).textContent = t.options[q][o];
+      }
+    }
+
+    [1,2,3].forEach(n=>{
+      document.getElementById('progress-'+n).innerHTML = `${t.questionWord} <b>${n}</b> ${t.ofWord} 3`;
+    });
+
+    document.getElementById('backBtn-1').textContent = t.back;
+    document.getElementById('backBtn-2').textContent = t.back;
+    document.getElementById('backBtn-3').textContent = t.back;
+    document.getElementById('nextBtn-1').textContent = t.next;
+    document.getElementById('nextBtn-2').textContent = t.next;
+    document.getElementById('nextBtn-3').textContent = t.finish;
+
+    document.getElementById('resEyebrow').textContent = t.resEyebrow;
+    document.getElementById('scoreOf').textContent = t.scoreOf;
+    document.getElementById('restartBtn').textContent = t.restart;
+
+    const logoImg = document.getElementById('logoImg');
+    if(logoImg) logoImg.alt = t.logoAlt;
+
+    if(pages[current] === 'page-result') renderResult();
+  }
+
+  document.getElementById('langRu').addEventListener('click', ()=>applyLang('ru'));
+  document.getElementById('langEn').addEventListener('click', ()=>applyLang('en'));
+
+  applyLang('ru');
+  show(0);
+})();
+</script>
+
+</body>
+</html>
