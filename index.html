@@ -655,7 +655,7 @@
   document.getElementById('restartBtn').addEventListener('click', ()=>{
     answers[0]=null; answers[1]=null; answers[2]=null;
     document.querySelectorAll('.option.selected').forEach(o=>o.classList.remove('selected'));
-    show(1); // per spec: restart returns to the first question
+    show(0); // restart returns to the very first (welcome) page
   });
 
   // ---- Language switch ----
