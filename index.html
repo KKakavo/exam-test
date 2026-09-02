@@ -757,27 +757,17 @@
   }
 
   document.getElementById('startBtn').addEventListener('click', ()=>{
-    shuffleQuestions();
+    resetQuiz();
     show(1);
   });
 
-  // ---- Question randomization ----
-  // Each slot (page-q1..q4) can display any of the 4 questions. questionType/correctAnswer
-  // (defined above, aligned with i18n.qText/options) describe each *original* question.
+  // ---- Fixed question order (randomization removed) ----
+  // Each slot (page-q1..q4) always shows the corresponding original question in order.
   let questionOrder = [0, 1, 2, 3];
   const LETTERS = ['A','B','C','D','E','F'];
 
-  function shuffleArray(arr){
-    const a = arr.slice();
-    for(let i = a.length - 1; i > 0; i--){
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  }
-
-  function shuffleQuestions(){
-    questionOrder = shuffleArray([0, 1, 2, 3]);
+  function resetQuiz(){
+    questionOrder = [0, 1, 2, 3];
     for(let i=0;i<answers.length;i++) answers[i] = null;
     renderAllSlots();
   }
